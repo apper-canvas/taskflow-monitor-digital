@@ -1,14 +1,15 @@
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useContext } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSelector } from 'react-redux';
 import ApperIcon from '@/components/ApperIcon';
 import { routeArray } from '@/config/routes';
 import CreateTaskModal from '@/components/organisms/CreateTaskModal';
-import { useAuth } from '@/contexts/AuthContext';
-
+import { AuthContext } from '@/App';
 const Layout = () => {
-  const location = useLocation();
-  const { user, logout } = useAuth();
+const location = useLocation();
+  const { logout } = useContext(AuthContext);
+  const user = useSelector((state) => state.user.user);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);

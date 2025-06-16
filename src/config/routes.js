@@ -4,6 +4,11 @@ import CompletedTasks from '@/components/pages/CompletedTasks';
 import CalendarView from '@/components/pages/CalendarView';
 import Login from '@/components/pages/Login';
 import Signup from '@/components/pages/Signup';
+import Callback from '@/components/pages/Callback';
+import ErrorPage from '@/components/pages/ErrorPage';
+import ResetPassword from '@/components/pages/ResetPassword';
+import PromptPassword from '@/components/pages/PromptPassword';
+
 export const routes = {
   upcoming: {
     id: 'upcoming',
@@ -19,7 +24,7 @@ export const routes = {
     icon: 'AlertCircle',
     component: OverdueTasks
   },
-completed: {
+  completed: {
     id: 'completed',
     label: 'Completed',
     path: '/completed',
@@ -45,6 +50,26 @@ export const authRoutes = [
     id: 'signup',
     path: '/signup',
     component: Signup
+  },
+  {
+    id: 'callback',
+    path: '/callback',
+    component: Callback
+  },
+  {
+    id: 'error',
+    path: '/error',
+    component: ErrorPage
+  },
+  {
+    id: 'reset-password',
+    path: '/reset-password/:appId/:fields',
+    component: ResetPassword
+  },
+  {
+    id: 'prompt-password',
+    path: '/prompt-password/:appId/:emailAddress/:provider',
+    component: PromptPassword
   }
 ];
 
