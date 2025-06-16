@@ -215,38 +215,54 @@ return (
                   )}
                 </div>
                 
-                <div className="space-y-1 overflow-hidden">
+<div className="space-y-1 overflow-hidden">
                   {dayTasks.slice(0, 2).map((task) => {
                     const taskDate = new Date(task.dueDate);
-                    const isOverdue = isPast(taskDate) && !isToday(taskDate) && task.status !== 'completed';
                     const isCompleted = task.status === 'completed';
+                    const isOverdue = isPast(taskDate) && !isToday(taskDate) && !isCompleted;
+                    const isUpcoming = !isPast(taskDate) && !isToday(taskDate) && !isCompleted;
+                    const isToday_ = isToday(taskDate) && !isCompleted;
+                    
+                    // Determine background color: completed (green), overdue (orange), today (blue), upcoming (yellow)
+                    let bgColor, textColor, borderColor, dotColor;
+                    
+                    if (isCompleted) {
+                      bgColor = 'bg-green-100';
+                      textColor = 'text-green-800';
+                      borderColor = 'border-green-300';
+                      dotColor = 'bg-green-600';
+                    } else if (isOverdue) {
+                      bgColor = 'bg-orange-100';
+                      textColor = 'text-orange-800';
+                      borderColor = 'border-orange-300';
+                      dotColor = 'bg-orange-600';
+                    } else if (isToday_) {
+                      bgColor = 'bg-blue-100';
+                      textColor = 'text-blue-800';
+                      borderColor = 'border-blue-300';
+                      dotColor = 'bg-blue-600';
+                    } else {
+                      // Default to upcoming (yellow) for future tasks
+                      bgColor = 'bg-yellow-100';
+                      textColor = 'text-yellow-800';
+                      borderColor = 'border-yellow-300';
+                      dotColor = 'bg-yellow-600';
+                    }
                     
                     return (
-<motion.div
+                      <motion.div
                         key={task.id}
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         whileHover={{ scale: 1.02 }}
-                        className={`text-xs p-2 rounded-md cursor-pointer transition-all duration-200 ${
-                          isCompleted
-                            ? 'bg-green-100 text-green-800 border border-green-300 shadow-sm'
-                            : isOverdue
-                            ? 'bg-orange-100 text-orange-800 border border-orange-300 shadow-sm'
-                            : 'bg-yellow-100 text-yellow-800 border border-yellow-300 shadow-sm'
-                        }`}
+                        className={`text-xs p-2 rounded-md cursor-pointer transition-all duration-200 ${bgColor} ${textColor} border ${borderColor} shadow-sm`}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEditTask(task);
                         }}
                       >
                         <div className="flex items-center space-x-2">
-                          <div className={`w-2 h-2 rounded-full ${
-                            isCompleted
-                              ? 'bg-green-600'
-                              : isOverdue
-                              ? 'bg-orange-600'
-                              : 'bg-yellow-600'
-                          }`}></div>
+                          <div className={`w-2 h-2 rounded-full ${dotColor}`}></div>
                           <span className="truncate font-medium leading-tight">{task.title}</span>
                         </div>
                         {task.priority && (
