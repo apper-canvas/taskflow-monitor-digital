@@ -45,7 +45,7 @@ const TimeInput = forwardRef(({ value = '', onChange, className = '', ...props }
   
   const { hour, minute, period } = parseTime(localValue);
   
-  const handleHourChange = (newHour) => {
+const handleHourChange = (newHour) => {
     let h = parseInt(newHour);
     if (isNaN(h) || h < 1) h = 1;
     if (h > 12) h = 12;
@@ -70,7 +70,6 @@ const TimeInput = forwardRef(({ value = '', onChange, className = '', ...props }
     setLocalValue(newTime);
     onChange?.(newTime);
   };
-  
   const handleDirectInput = (e) => {
     const inputValue = e.target.value;
     setLocalValue(inputValue);
@@ -97,32 +96,54 @@ const TimeInput = forwardRef(({ value = '', onChange, className = '', ...props }
     }
   };
   
-  const formatTimeInput = (input) => {
+const formatTimeInput = (input) => {
     if (!input) return '';
     
-    // Remove non-digits and colons
-    const cleaned = input.replace(/[^\d:]/g, '');
+    // Remove non-digits, colons, and AM/PM
+    const cleaned = input.replace(/[^\d:apm\s]/gi, '');
     
     if (cleaned.includes(':')) {
-      const [h, m] = cleaned.split(':');
-      const hour = parseInt(h) || 0;
-      const minute = parseInt(m) || 0;
+      const parts = cleaned.split(':');
+      const h = parseInt(parts[0]) || 1;
+      const m = parseInt(parts[1]) || 0;
       
-      if (hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59) {
-        return `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+      // Validate for 12-hour format
+      if (h >= 1 && h <= 12 && m >= 0 && m <= 59) {
+        // Determine period from input or use current period
+        const inputLower = input.toLowerCase();
+        let detectedPeriod = period;
+        if (inputLower.includes('am') || inputLower.includes('a')) {
+          detectedPeriod = 'AM';
+        } else if (inputLower.includes('pm') || inputLower.includes('p')) {
+          detectedPeriod = 'PM';
+        }
+        
+        return formatTime(h, m, detectedPeriod);
       }
-    } else if (cleaned.length <= 4) {
-      // Handle HHMM format
+    } else if (cleaned.length <= 4 && /^\d+$/.test(cleaned)) {
+      // Handle HHMM format for 12-hour
       const nums = cleaned.padStart(4, '0');
-      const h = parseInt(nums.slice(0, 2));
+      let h = parseInt(nums.slice(0, 2));
       const m = parseInt(nums.slice(2, 4));
       
-      if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
-        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
+      // Convert 24-hour input to 12-hour if needed
+      let detectedPeriod = period;
+      if (h === 0) {
+        h = 12;
+        detectedPeriod = 'AM';
+      } else if (h > 12) {
+        h = h - 12;
+        detectedPeriod = 'PM';
+      } else if (h === 12) {
+        detectedPeriod = 'PM';
+      }
+      
+      if (h >= 1 && h <= 12 && m >= 0 && m <= 59) {
+        return formatTime(h, m, detectedPeriod);
       }
     }
     
-    return '';
+    return localValue; // Return current value if input is invalid
   };
   
   return (

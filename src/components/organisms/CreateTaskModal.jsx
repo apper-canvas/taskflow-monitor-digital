@@ -5,15 +5,43 @@ import ApperIcon from '@/components/ApperIcon';
 import Button from '@/components/atoms/Button';
 import FormField from '@/components/molecules/FormField';
 import TagInput from '@/components/molecules/TagInput';
+import TimeInput from '@/components/atoms/TimeInput';
 import ChecklistManager from '@/components/organisms/ChecklistManager';
 import { taskService, reminderService } from '@/services';
+// Helper function to convert 24-hour time to 12-hour format
+const convertTo12Hour = (time24) => {
+  if (!time24) return '';
+  const [hours, minutes] = time24.split(':');
+  const hour24 = parseInt(hours);
+  const hour12 = hour24 === 0 ? 12 : hour24 > 12 ? hour24 - 12 : hour24;
+  const period = hour24 >= 12 ? 'PM' : 'AM';
+  return `${hour12}:${minutes.padStart(2, '0')} ${period}`;
+};
+
+// Helper function to convert 12-hour time to 24-hour format
+const convertTo24Hour = (time12) => {
+  if (!time12) return '';
+  const match = time12.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) return '';
+  
+  let [, hours, minutes, period] = match;
+  let hour24 = parseInt(hours);
+  
+  if (period.toUpperCase() === 'AM' && hour24 === 12) {
+    hour24 = 0;
+  } else if (period.toUpperCase() === 'PM' && hour24 !== 12) {
+    hour24 += 12;
+  }
+  
+  return `${hour24.toString().padStart(2, '0')}:${minutes}`;
+};
 
 const CreateTaskModal = ({ isOpen, onClose, task = null, onTaskCreated }) => {
 const [formData, setFormData] = useState({
     title: task?.title || '',
     description: task?.description || '',
     dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().slice(0, 10) : '',
-    dueTime: task?.dueDate ? new Date(task.dueDate).toISOString().slice(11, 16) : '',
+    dueTime: task?.dueDate ? convertTo12Hour(new Date(task.dueDate).toISOString().slice(11, 16)) : '',
     priority: task?.priority || 'medium',
     tags: task?.tags || [],
     checklist: task?.checklist || []
@@ -45,11 +73,16 @@ if (!formData.dueDate) {
       newErrors.dueTime = 'Due time is required';
     }
     
-    if (formData.dueDate && formData.dueTime) {
-      const dueDateTime = new Date(`${formData.dueDate}T${formData.dueTime}`);
-      const now = new Date();
-      if (dueDateTime <= now) {
-        newErrors.dueDate = 'Due date and time must be in the future';
+if (formData.dueDate && formData.dueTime) {
+      const time24 = convertTo24Hour(formData.dueTime);
+      if (time24) {
+        const dueDateTime = new Date(`${formData.dueDate}T${time24}`);
+        const now = new Date();
+        if (dueDateTime <= now) {
+          newErrors.dueDate = 'Due date and time must be in the future';
+        }
+      } else {
+        newErrors.dueTime = 'Invalid time format';
       }
     }
     
@@ -67,9 +100,14 @@ if (!formData.dueDate) {
     try {
       let savedTask;
       
-if (task) {
+const time24 = convertTo24Hour(formData.dueTime);
+      if (!time24) {
+        throw new Error('Invalid time format');
+      }
+      
+      if (task) {
         // Update existing task
-        const combinedDateTime = new Date(`${formData.dueDate}T${formData.dueTime}`).toISOString();
+        const combinedDateTime = new Date(`${formData.dueDate}T${time24}`).toISOString();
         savedTask = await taskService.update(task.id, {
           ...formData,
           dueDate: combinedDateTime
@@ -77,7 +115,7 @@ if (task) {
         toast.success('Task updated successfully!');
       } else {
         // Create new task
-        const combinedDateTime = new Date(`${formData.dueDate}T${formData.dueTime}`).toISOString();
+        const combinedDateTime = new Date(`${formData.dueDate}T${time24}`).toISOString();
         savedTask = await taskService.create({
           ...formData,
           dueDate: combinedDateTime
@@ -182,14 +220,19 @@ setFormData({
                 required
               />
               
-<FormField
-                label="Due Time"
-                type="time"
-                value={formData.dueTime}
-                onChange={(e) => handleInputChange('dueTime', e.target.value)}
-                error={errors.dueTime}
-                required
-              />
+<div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Due Time <span className="text-red-500">*</span>
+                </label>
+                <TimeInput
+                  value={formData.dueTime}
+                  onChange={(time) => handleInputChange('dueTime', time)}
+                  placeholder="Select time"
+                />
+                {errors.dueTime && (
+                  <p className="mt-1 text-sm text-red-600">{errors.dueTime}</p>
+                )}
+              </div>
               
               <FormField label="Priority">
                 <select
