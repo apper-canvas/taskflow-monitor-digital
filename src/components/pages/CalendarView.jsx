@@ -222,7 +222,7 @@ return (
                     const isCompleted = task.status === 'completed';
                     
                     return (
-                      <motion.div
+<motion.div
                         key={task.id}
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
@@ -231,8 +231,8 @@ return (
                           isCompleted
                             ? 'bg-green-100 text-green-800 border border-green-300 shadow-sm'
                             : isOverdue
-                            ? 'bg-red-100 text-red-800 border border-red-300 shadow-sm'
-                            : 'bg-blue-100 text-blue-800 border border-blue-300 shadow-sm'
+                            ? 'bg-orange-100 text-orange-800 border border-orange-300 shadow-sm'
+                            : 'bg-yellow-100 text-yellow-800 border border-yellow-300 shadow-sm'
                         }`}
                         onClick={(e) => {
                           e.stopPropagation();
@@ -244,8 +244,8 @@ return (
                             isCompleted
                               ? 'bg-green-600'
                               : isOverdue
-                              ? 'bg-red-600'
-                              : 'bg-blue-600'
+                              ? 'bg-orange-600'
+                              : 'bg-yellow-600'
                           }`}></div>
                           <span className="truncate font-medium leading-tight">{task.title}</span>
                         </div>
