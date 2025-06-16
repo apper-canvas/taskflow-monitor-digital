@@ -98,16 +98,33 @@ class ReminderService {
     }
   }
 
-  async create(reminderData) {
+async create(reminderData) {
     await delay(200);
     try {
       if (!this.apperClient) this.initClient();
+      
+      // Fetch task details to get the actual task title for name synchronization
+      let taskTitle = `Task ${reminderData.taskId}`;
+      try {
+        const taskParams = {
+          fields: ['Name', 'title']
+        };
+        const taskResponse = await this.apperClient.getRecordById('task', parseInt(reminderData.taskId), taskParams);
+        if (taskResponse.success && taskResponse.data) {
+          // Use the task's title field for the reminder name to ensure synchronization
+          taskTitle = taskResponse.data.title || taskResponse.data.Name || taskTitle;
+        }
+      } catch (taskError) {
+        console.warn('Could not fetch task title for reminder synchronization:', taskError);
+        // Continue with default name if task fetch fails
+      }
       
       const params = {
         records: [
           {
             // Only include Updateable fields
-            Name: `Reminder for Task ${reminderData.taskId}`,
+            // Use the actual task title for the reminder name to ensure synchronization
+            Name: taskTitle,
             task_id: parseInt(reminderData.taskId),
             scheduled_for: reminderData.scheduledFor,
             type: reminderData.type,
