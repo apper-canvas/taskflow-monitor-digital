@@ -1,6 +1,8 @@
 import UpcomingTasks from '@/components/pages/UpcomingTasks';
 import OverdueTasks from '@/components/pages/OverdueTasks';
 import CompletedTasks from '@/components/pages/CompletedTasks';
+import Login from '@/components/pages/Login';
+import Signup from '@/components/pages/Signup';
 
 export const routes = {
   upcoming: {
@@ -25,6 +27,19 @@ export const routes = {
     component: CompletedTasks
   }
 };
+
+export const authRoutes = [
+  {
+    id: 'login',
+    path: '/login',
+    component: Login
+  },
+  {
+    id: 'signup',
+    path: '/signup',
+    component: Signup
+  }
+];
 
 export const routeArray = Object.values(routes);
 export default routes;
