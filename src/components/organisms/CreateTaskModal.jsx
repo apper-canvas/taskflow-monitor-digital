@@ -184,9 +184,9 @@ setFormData({
               
 <FormField
                 label="Due Time"
-                component="time"
+                type="time"
                 value={formData.dueTime}
-                onChange={(time) => handleInputChange('dueTime', time)}
+                onChange={(e) => handleInputChange('dueTime', e.target.value)}
                 error={errors.dueTime}
                 required
               />
