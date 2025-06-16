@@ -1,24 +1,38 @@
-import React, { forwardRef, useEffect, useState } from "react";
+import React, { forwardRef, useEffect, useRef, useState } from "react";
 import ApperIcon from "@/components/ApperIcon";
 
-const TimeInput = forwardRef(({ value = '', onChange, className = '', ...props }, ref) => {
+const TimeInput = forwardRef(({ value = '', onChange, className = '', placeholder = 'Select time', ...props }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState(value);
+  const dropdownRef = useRef(null);
+  const inputRef = useRef(null);
   
   // Update local value when prop changes
   useEffect(() => {
     setLocalValue(value);
   }, [value]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   
-  // Parse time string (HH:MM) into components
+  // Parse time string (HH:MM 24-hour) into 12-hour components
   const parseTime = (timeStr) => {
     if (!timeStr || typeof timeStr !== 'string') {
       return { hour: '12', minute: '00', period: 'AM' };
     }
     
-    // Handle both HH:MM and partial inputs
+    // Handle 24-hour format (HH:MM)
     const parts = timeStr.split(':');
-    let hour = parseInt(parts[0]) || 12;
+    let hour = parseInt(parts[0]) || 0;
     let minute = parseInt(parts[1]) || 0;
     
     const period = hour >= 12 ? 'PM' : 'AM';
@@ -32,7 +46,7 @@ const TimeInput = forwardRef(({ value = '', onChange, className = '', ...props }
     };
   };
   
-  // Convert components back to 24-hour format (HH:MM)
+  // Convert 12-hour components back to 24-hour format (HH:MM)
   const formatTime = (hour, minute, period) => {
     let h = parseInt(hour) || 12;
     let m = parseInt(minute) || 0;
@@ -42,10 +56,17 @@ const TimeInput = forwardRef(({ value = '', onChange, className = '', ...props }
     
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
   };
+
+  // Format time for display (12-hour format)
+  const formatDisplayTime = (timeStr) => {
+    if (!timeStr) return '';
+    const { hour, minute, period } = parseTime(timeStr);
+    return `${hour}:${minute} ${period}`;
+  };
   
   const { hour, minute, period } = parseTime(localValue);
-  
-const handleHourChange = (newHour) => {
+
+  const handleHourChange = (newHour) => {
     let h = parseInt(newHour);
     if (isNaN(h) || h < 1) h = 1;
     if (h > 12) h = 12;
@@ -70,151 +91,150 @@ const handleHourChange = (newHour) => {
     setLocalValue(newTime);
     onChange?.(newTime);
   };
+
   const handleDirectInput = (e) => {
     const inputValue = e.target.value;
-    setLocalValue(inputValue);
     
-    // Validate and format complete time strings
-    if (/^\d{1,2}:\d{2}$/.test(inputValue)) {
-      const [h, m] = inputValue.split(':').map(Number);
-      if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
-        onChange?.(inputValue);
-      }
-    } else if (inputValue === '') {
+    // Allow typing and update display immediately
+    if (inputValue === '') {
+      setLocalValue('');
       onChange?.('');
+      return;
+    }
+
+    // Try to parse various time formats
+    const formatted = parseDirectInput(inputValue);
+    if (formatted) {
+      setLocalValue(formatted);
+      onChange?.(formatted);
     }
   };
-  
-  const handleBlur = () => {
-    // Format incomplete input on blur
-    if (localValue && localValue !== value) {
-      const formatted = formatTimeInput(localValue);
-      if (formatted) {
-        setLocalValue(formatted);
-        onChange?.(formatted);
-      }
-    }
-  };
-  
-const formatTimeInput = (input) => {
+
+  const parseDirectInput = (input) => {
     if (!input) return '';
     
-    // Remove non-digits, colons, and AM/PM
-    const cleaned = input.replace(/[^\d:apm\s]/gi, '');
+    // Remove extra spaces and normalize
+    const cleaned = input.trim().toLowerCase();
     
-    if (cleaned.includes(':')) {
-      const parts = cleaned.split(':');
-      const h = parseInt(parts[0]) || 1;
-      const m = parseInt(parts[1]) || 0;
+    // Match 12-hour format with AM/PM (e.g., "2:30 pm", "02:30pm", "2:30p")
+    const match12 = cleaned.match(/^(\d{1,2}):?(\d{0,2})\s*(am?|pm?)?$/);
+    if (match12) {
+      let [, h, m, periodStr] = match12;
       
-      // Validate for 12-hour format
-      if (h >= 1 && h <= 12 && m >= 0 && m <= 59) {
-        // Determine period from input or use current period
-        const inputLower = input.toLowerCase();
-        let detectedPeriod = period;
-        if (inputLower.includes('am') || inputLower.includes('a')) {
-          detectedPeriod = 'AM';
-        } else if (inputLower.includes('pm') || inputLower.includes('p')) {
-          detectedPeriod = 'PM';
-        }
-        
-        return formatTime(h, m, detectedPeriod);
-      }
-    } else if (cleaned.length <= 4 && /^\d+$/.test(cleaned)) {
-      // Handle HHMM format for 12-hour
-      const nums = cleaned.padStart(4, '0');
-      let h = parseInt(nums.slice(0, 2));
-      const m = parseInt(nums.slice(2, 4));
+      h = parseInt(h) || 1;
+      m = m ? parseInt(m) : 0;
       
-      // Convert 24-hour input to 12-hour if needed
-      let detectedPeriod = period;
-      if (h === 0) {
-        h = 12;
-        detectedPeriod = 'AM';
-      } else if (h > 12) {
-        h = h - 12;
-        detectedPeriod = 'PM';
-      } else if (h === 12) {
-        detectedPeriod = 'PM';
+      // Validate ranges
+      if (h < 1 || h > 12 || m < 0 || m > 59) return null;
+      
+      // Determine period
+      let detectedPeriod = period; // Use current period as default
+      if (periodStr) {
+        detectedPeriod = periodStr.startsWith('a') ? 'AM' : 'PM';
       }
       
-      if (h >= 1 && h <= 12 && m >= 0 && m <= 59) {
-        return formatTime(h, m, detectedPeriod);
+      return formatTime(h, m.toString().padStart(2, '0'), detectedPeriod);
+    }
+    
+    // Match 24-hour format (e.g., "14:30", "1430")
+    const match24 = cleaned.match(/^(\d{1,2}):?(\d{2})$/);
+    if (match24) {
+      let [, h, m] = match24;
+      h = parseInt(h);
+      m = parseInt(m);
+      
+      if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
+        return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
       }
     }
     
-    return localValue; // Return current value if input is invalid
+    return null;
   };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      setIsOpen(!isOpen);
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+      inputRef.current?.blur();
+    }
+  };
+
+  // Generate hour options (1-12)
+  const hourOptions = Array.from({ length: 12 }, (_, i) => i + 1);
   
+  // Generate minute options (00, 05, 10, ..., 55)
+  const minuteOptions = Array.from({ length: 12 }, (_, i) => (i * 5).toString().padStart(2, '0'));
+
   return (
-    <div className={`relative ${className}`}>
-    <div
-        className={`
-        flex items-center bg-white border border-gray-300 rounded-lg px-3 py-2 
-        focus-within:border-primary focus-within:ring-1 focus-within:ring-primary
-        ${isOpen ? "border-primary ring-1 ring-primary" : ""}
-      `}>
-        <ApperIcon name="Clock" size={16} className="text-gray-400 mr-2" />
-        {/* Direct time input */}
+    <div className={`relative ${className}`} ref={dropdownRef}>
+    <div className="relative">
         <input
-            ref={ref}
+            ref={inputRef}
             type="text"
-            value={localValue}
+            value={formatDisplayTime(localValue)}
             onChange={handleDirectInput}
-            onBlur={handleBlur}
-            placeholder="HH:MM"
-            className="flex-1 text-sm border-none outline-none bg-transparent"
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
             {...props} />
         <button
             type="button"
             onClick={() => setIsOpen(!isOpen)}
-            className="ml-2 text-gray-400 hover:text-gray-600 transition-colors">
-            <ApperIcon name={isOpen ? "ChevronUp" : "ChevronDown"} size={16} />
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
+            <ApperIcon name="Clock" size={16} />
         </button>
     </div>
-    {/* Time picker dropdown */}
     {isOpen && <div
-        className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-50">
-        <div className="flex items-center justify-center p-4 space-x-2">
-            {/* Hour input */}
-            <div className="flex flex-col items-center">
-                <label className="text-xs text-gray-500 mb-1">Hour</label>
-                <input
-                    type="number"
-                    min="1"
-                    max="12"
-                    value={hour}
-                    onChange={e => handleHourChange(e.target.value)}
-                    className="w-12 text-center border border-gray-300 rounded px-2 py-1 text-sm focus:border-primary focus:outline-none" />
-            </div>
-            <span className="text-lg font-semibold text-gray-600 mt-6">:</span>
-            {/* Minute input */}
-            <div className="flex flex-col items-center">
-                <label className="text-xs text-gray-500 mb-1">Min</label>
-                <input
-                    type="number"
-                    min="0"
-                    max="59"
-                    value={minute}
-                    onChange={e => handleMinuteChange(e.target.value)}
-                    className="w-12 text-center border border-gray-300 rounded px-2 py-1 text-sm focus:border-primary focus:outline-none" />
-            </div>
-            {/* AM/PM toggle */}
-            <div className="flex flex-col items-center ml-2">
-                <label className="text-xs text-gray-500 mb-1">Period</label>
-                <div className="flex border border-gray-300 rounded overflow-hidden">
-                    <button
+        className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
+        <div className="grid grid-cols-3 gap-4">
+            {/* Hour Selection */}
+            <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Hour</label>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {hourOptions.map(h => <button
+                        key={h}
                         type="button"
-                        onClick={() => handlePeriodChange("AM")}
-                        className={`px-2 py-1 text-xs font-medium transition-colors ${period === "AM" ? "bg-primary text-white" : "bg-white text-gray-700 hover:bg-gray-50"}`}>AM
-                                        </button>
-                    <button
-                        type="button"
-                        onClick={() => handlePeriodChange("PM")}
-                        className={`px-2 py-1 text-xs font-medium transition-colors ${period === "PM" ? "bg-primary text-white" : "bg-white text-gray-700 hover:bg-gray-50"}`}>PM
-                                        </button>
+                        onClick={() => handleHourChange(h)}
+                        className={`w-full text-left px-2 py-1 rounded text-sm transition-colors ${parseInt(hour) === h ? "bg-primary text-white" : "hover:bg-gray-100"}`}>
+                        {h}
+                    </button>)}
                 </div>
             </div>
+            {/* Minute Selection */}
+            <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Minute</label>
+                <div className="space-y-1 max-h-32 overflow-y-auto">
+                    {minuteOptions.map(m => <button
+                        key={m}
+                        type="button"
+                        onClick={() => handleMinuteChange(m)}
+                        className={`w-full text-left px-2 py-1 rounded text-sm transition-colors ${minute === m ? "bg-primary text-white" : "hover:bg-gray-100"}`}>
+                        {m}
+                    </button>)}
+                </div>
+            </div>
+            {/* AM/PM Selection */}
+            <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Period</label>
+                <div className="space-y-1">
+                    {["AM", "PM"].map(p => <button
+                        key={p}
+                        type="button"
+                        onClick={() => handlePeriodChange(p)}
+                        className={`w-full text-left px-2 py-1 rounded text-sm transition-colors ${period === p ? "bg-primary text-white" : "hover:bg-gray-100"}`}>
+                        {p}
+                    </button>)}
+                </div>
+            </div>
+        </div>
+        <div className="mt-4 pt-3 border-t border-gray-200 flex justify-end">
+            <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="px-3 py-1 text-sm bg-primary text-white rounded hover:bg-primary/90 transition-colors">Done
+                            </button>
         </div>
     </div>}
 </div>
