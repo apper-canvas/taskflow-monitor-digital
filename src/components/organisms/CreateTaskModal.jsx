@@ -161,15 +161,23 @@ const CreateTaskModal = ({ isOpen, onClose, task = null, onTaskCreated }) => {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none resize-none"
               />
             </FormField>
-            
-            {/* Due Date & Priority */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+{/* Due Date, Time & Priority */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <FormField
-                label="Due Date & Time"
-                type="datetime-local"
+                label="Due Date"
+                type="date"
                 value={formData.dueDate}
                 onChange={(e) => handleInputChange('dueDate', e.target.value)}
                 error={errors.dueDate}
+                required
+              />
+              
+              <FormField
+                label="Due Time"
+                type="time"
+                value={formData.dueTime}
+                onChange={(time) => handleInputChange('dueTime', time)}
+                error={errors.dueTime}
                 required
               />
               

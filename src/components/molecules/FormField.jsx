@@ -1,8 +1,11 @@
-import Input from '@/components/atoms/Input';
+import Input from "@/components/atoms/Input";
+import TimeInput from "@/components/atoms/TimeInput";
+import React from "react";
 
 const FormField = ({ 
   label, 
   error, 
+  type,
   required = false, 
   className = '', 
   children,
@@ -16,14 +19,23 @@ const FormField = ({
           {required && <span className="text-error ml-1">*</span>}
         </label>
       )}
-      
-      {children || (
-        <Input
-          label={label}
-          error={error}
-          required={required}
-          {...props}
-        />
+{children || (
+        type === 'time' ? (
+          <TimeInput
+            label={label}
+            error={error}
+            required={required}
+            {...props}
+          />
+        ) : (
+          <Input
+            label={label}
+            type={type}
+            error={error}
+            required={required}
+            {...props}
+          />
+        )
       )}
     </div>
   );
