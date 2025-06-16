@@ -4,13 +4,23 @@ import ApperIcon from "@/components/ApperIcon";
 const TimeInput = forwardRef(({ value = '', onChange, className = '', placeholder = 'Select time', ...props }, ref) => {
   const [isOpen, setIsOpen] = useState(false);
   const [localValue, setLocalValue] = useState(value);
-  const dropdownRef = useRef(null);
+  const [displayValue, setDisplayValue] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
   const inputRef = useRef(null);
-  
+  const dropdownRef = useRef(null);
+
   // Update local value when prop changes
   useEffect(() => {
     setLocalValue(value);
-  }, [value]);
+    if (!isTyping) {
+      setDisplayValue(formatDisplayTime(value));
+    }
+  }, [value, isTyping]);
+
+  // Initialize display value
+  useEffect(() => {
+    setDisplayValue(formatDisplayTime(localValue));
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -92,17 +102,19 @@ const TimeInput = forwardRef(({ value = '', onChange, className = '', placeholde
     onChange?.(newTime);
   };
 
-  const handleDirectInput = (e) => {
+const handleDirectInput = (e) => {
     const inputValue = e.target.value;
+    setIsTyping(true);
+    setDisplayValue(inputValue);
     
-    // Allow typing and update display immediately
+    // Allow empty input
     if (inputValue === '') {
       setLocalValue('');
       onChange?.('');
       return;
     }
 
-    // Try to parse various time formats
+    // Try to parse various time formats in real-time
     const formatted = parseDirectInput(inputValue);
     if (formatted) {
       setLocalValue(formatted);
@@ -110,13 +122,36 @@ const TimeInput = forwardRef(({ value = '', onChange, className = '', placeholde
     }
   };
 
-  const parseDirectInput = (input) => {
+  const handleInputBlur = () => {
+    setIsTyping(false);
+    
+    // If there's a display value, try to parse it one final time
+    if (displayValue.trim()) {
+      const formatted = parseDirectInput(displayValue);
+      if (formatted) {
+        setLocalValue(formatted);
+        onChange?.(formatted);
+        setDisplayValue(formatDisplayTime(formatted));
+      } else {
+        // Invalid input, revert to last valid value
+        setDisplayValue(formatDisplayTime(localValue));
+      }
+    } else {
+      setDisplayValue(formatDisplayTime(localValue));
+    }
+  };
+
+  const handleInputFocus = () => {
+    setIsTyping(true);
+  };
+
+const parseDirectInput = (input) => {
     if (!input) return '';
     
     // Remove extra spaces and normalize
     const cleaned = input.trim().toLowerCase();
     
-    // Match 12-hour format with AM/PM (e.g., "2:30 pm", "02:30pm", "2:30p")
+    // Match 12-hour format with AM/PM (e.g., "2:30 pm", "02:30pm", "2:30p", "230pm")
     const match12 = cleaned.match(/^(\d{1,2}):?(\d{0,2})\s*(am?|pm?)?$/);
     if (match12) {
       let [, h, m, periodStr] = match12;
@@ -124,11 +159,24 @@ const TimeInput = forwardRef(({ value = '', onChange, className = '', placeholde
       h = parseInt(h) || 1;
       m = m ? parseInt(m) : 0;
       
+      // Handle cases like "230pm" (should be 2:30 PM)
+      if (h > 12 && !m) {
+        const hStr = h.toString();
+        if (hStr.length === 3) {
+          h = parseInt(hStr.slice(0, 1));
+          m = parseInt(hStr.slice(1));
+        } else if (hStr.length === 4) {
+          h = parseInt(hStr.slice(0, 2));
+          m = parseInt(hStr.slice(2));
+        }
+      }
+      
       // Validate ranges
       if (h < 1 || h > 12 || m < 0 || m > 59) return null;
       
-      // Determine period
-      let detectedPeriod = period; // Use current period as default
+      // Determine period - use current period if available, otherwise default to AM
+      const currentParsed = parseTime(localValue);
+      let detectedPeriod = currentParsed?.period || 'AM';
       if (periodStr) {
         detectedPeriod = periodStr.startsWith('a') ? 'AM' : 'PM';
       }
@@ -136,12 +184,12 @@ const TimeInput = forwardRef(({ value = '', onChange, className = '', placeholde
       return formatTime(h, m.toString().padStart(2, '0'), detectedPeriod);
     }
     
-    // Match 24-hour format (e.g., "14:30", "1430")
-    const match24 = cleaned.match(/^(\d{1,2}):?(\d{2})$/);
+    // Match 24-hour format (e.g., "14:30", "1430", "14")
+    const match24 = cleaned.match(/^(\d{1,2}):?(\d{0,2})$/);
     if (match24) {
       let [, h, m] = match24;
       h = parseInt(h);
-      m = parseInt(m);
+      m = m ? parseInt(m) : 0;
       
       if (h >= 0 && h <= 23 && m >= 0 && m <= 59) {
         return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
@@ -173,8 +221,10 @@ const TimeInput = forwardRef(({ value = '', onChange, className = '', placeholde
         <input
             ref={inputRef}
             type="text"
-            value={formatDisplayTime(localValue)}
+value={isTyping ? displayValue : formatDisplayTime(localValue)}
             onChange={handleDirectInput}
+            onBlur={handleInputBlur}
+            onFocus={handleInputFocus}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 pr-10 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
