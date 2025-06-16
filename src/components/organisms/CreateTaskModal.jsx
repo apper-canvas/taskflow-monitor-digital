@@ -9,10 +9,11 @@ import ChecklistManager from '@/components/organisms/ChecklistManager';
 import { taskService, reminderService } from '@/services';
 
 const CreateTaskModal = ({ isOpen, onClose, task = null, onTaskCreated }) => {
-  const [formData, setFormData] = useState({
+const [formData, setFormData] = useState({
     title: task?.title || '',
     description: task?.description || '',
-    dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().slice(0, 16) : '',
+    dueDate: task?.dueDate ? new Date(task.dueDate).toISOString().slice(0, 10) : '',
+    dueTime: task?.dueDate ? new Date(task.dueDate).toISOString().slice(11, 16) : '',
     priority: task?.priority || 'medium',
     tags: task?.tags || [],
     checklist: task?.checklist || []
@@ -36,13 +37,19 @@ const CreateTaskModal = ({ isOpen, onClose, task = null, onTaskCreated }) => {
       newErrors.title = 'Title is required';
     }
     
-    if (!formData.dueDate) {
+if (!formData.dueDate) {
       newErrors.dueDate = 'Due date is required';
-    } else {
-      const dueDate = new Date(formData.dueDate);
+    }
+    
+    if (!formData.dueTime) {
+      newErrors.dueTime = 'Due time is required';
+    }
+    
+    if (formData.dueDate && formData.dueTime) {
+      const dueDateTime = new Date(`${formData.dueDate}T${formData.dueTime}`);
       const now = new Date();
-      if (dueDate <= now) {
-        newErrors.dueDate = 'Due date must be in the future';
+      if (dueDateTime <= now) {
+        newErrors.dueDate = 'Due date and time must be in the future';
       }
     }
     
@@ -60,18 +67,20 @@ const CreateTaskModal = ({ isOpen, onClose, task = null, onTaskCreated }) => {
     try {
       let savedTask;
       
-      if (task) {
+if (task) {
         // Update existing task
+        const combinedDateTime = new Date(`${formData.dueDate}T${formData.dueTime}`).toISOString();
         savedTask = await taskService.update(task.id, {
           ...formData,
-          dueDate: new Date(formData.dueDate).toISOString()
+          dueDate: combinedDateTime
         });
         toast.success('Task updated successfully!');
       } else {
         // Create new task
+        const combinedDateTime = new Date(`${formData.dueDate}T${formData.dueTime}`).toISOString();
         savedTask = await taskService.create({
           ...formData,
-          dueDate: new Date(formData.dueDate).toISOString()
+          dueDate: combinedDateTime
         });
         
         // Create email reminders
@@ -91,10 +100,11 @@ const CreateTaskModal = ({ isOpen, onClose, task = null, onTaskCreated }) => {
 
   const handleClose = () => {
     if (!loading) {
-      setFormData({
+setFormData({
         title: '',
         description: '',
         dueDate: '',
+        dueTime: '',
         priority: 'medium',
         tags: [],
         checklist: []
@@ -163,7 +173,7 @@ const CreateTaskModal = ({ isOpen, onClose, task = null, onTaskCreated }) => {
             </FormField>
 {/* Due Date, Time & Priority */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <FormField
+<FormField
                 label="Due Date"
                 type="date"
                 value={formData.dueDate}
