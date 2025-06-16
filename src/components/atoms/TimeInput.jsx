@@ -1,6 +1,5 @@
-import { useState, forwardRef } from 'react';
-import ApperIcon from '@/components/ApperIcon';
-
+import React, { forwardRef, useState } from "react";
+import ApperIcon from "@/components/ApperIcon";
 const TimeInput = forwardRef(({ 
   label,
   value = '',
@@ -57,84 +56,73 @@ const TimeInput = forwardRef(({
     onChange?.(time24);
   };
 
-  return (
+return (
     <div className={`relative ${className}`}>
-      {hasFloatingLabel && (
-        <label
-          className={`absolute left-3 transition-all duration-200 pointer-events-none ${
-            isFocused || hasValue
-              ? 'top-2 text-xs text-primary font-medium'
-              : 'top-1/2 -translate-y-1/2 text-gray-500'
-          }`}
-        >
-          {label}
-        </label>
-      )}
-      
-      <div className="relative">
-        <div className={`
-          w-full border border-gray-300 rounded-lg transition-all duration-200 flex items-center
-          focus-within:border-primary focus-within:ring-1 focus-within:ring-primary
-          ${hasFloatingLabel ? 'pt-6 pb-2 px-3' : 'py-3 px-3'}
-          ${error ? 'border-error focus-within:border-error focus-within:ring-error' : ''}
-        `}>
-          {/* Hour Input */}
-          <input
-            ref={ref}
-            type="number"
-            min="1"
-            max="12"
-            value={hour}
-            onChange={(e) => handleHourChange(e.target.value)}
+    {hasFloatingLabel && <label
+        className={`absolute left-3 transition-all duration-200 pointer-events-none z-10 ${isFocused || hasValue ? "top-2 text-xs text-primary font-medium" : "top-1/2 -translate-y-1/2 text-gray-500"}`}>
+        {label}
+    </label>}
+    <div className="relative">
+        <div
+            className={`
+            w-full border border-gray-300 rounded-lg transition-all duration-200 flex items-center justify-between gap-2
+            focus-within:border-primary focus-within:ring-1 focus-within:ring-primary
+            ${hasFloatingLabel ? "pt-6 pb-2 px-3" : "py-3 px-3"}
+            ${error ? "border-error focus-within:border-error focus-within:ring-error" : ""}
+          `}
             onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            className="w-8 text-center border-none outline-none bg-transparent"
-            placeholder="00"
-            {...props}
-          />
-          
-          <span className="text-gray-500 mx-1">:</span>
-          
-          {/* Minute Input */}
-          <input
-            type="number"
-            min="0"
-            max="59"
-            value={minute}
-            onChange={(e) => handleMinuteChange(e.target.value.padStart(2, '0'))}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            className="w-8 text-center border-none outline-none bg-transparent"
-            placeholder="00"
-          />
-          
-          {/* AM/PM Selector */}
-          <select
-            value={period}
-            onChange={(e) => handlePeriodChange(e.target.value)}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-            className="ml-2 border-none outline-none bg-transparent text-sm font-medium"
-          >
-            <option value="AM">AM</option>
-            <option value="PM">PM</option>
-          </select>
+            onBlur={e => {
+                if (!e.currentTarget.contains(e.relatedTarget)) {
+                    setIsFocused(false);
+                }
+            }}>
+            {/* Time Input Container */}
+            <div className="flex items-center gap-1">
+                {/* Hour Input */}
+                <input
+                    ref={ref}
+                    type="number"
+                    min="1"
+                    max="12"
+                    value={hour}
+                    onChange={e => handleHourChange(e.target.value)}
+                    className="w-8 text-center border-none outline-none bg-transparent text-sm"
+                    placeholder="12"
+                    {...props} />
+                {/* Separator */}
+                <span className="text-gray-400 text-sm">:</span>
+                {/* Minute Input */}
+                <input
+                    type="number"
+                    min="0"
+                    max="59"
+                    value={minute}
+                    onChange={e => {
+                        let val = e.target.value;
+
+                        if (val.length === 1)
+                            val = "0" + val;
+
+                        if (val.length > 2)
+                            val = val.slice(0, 2);
+
+                        handleMinuteChange(val);
+                    }}
+                    className="w-8 text-center border-none outline-none bg-transparent text-sm"
+                    placeholder="00" />
+            </div>
+            {/* AM/PM Selector */}
+            <select
+                value={period}
+                onChange={e => handlePeriodChange(e.target.value)}
+                className="border-none outline-none bg-transparent text-sm font-medium text-gray-700 cursor-pointer">
+                <option value="AM">AM</option>
+                <option value="PM">PM</option>
+            </select>
         </div>
-        
-        <ApperIcon
-          name="Clock"
-          size={18}
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"
-        />
-      </div>
-      
-      {error && (
-        <p className="mt-1 text-sm text-error flex items-center">
-          <ApperIcon name="AlertCircle" size={14} className="mr-1" />
-          {error}
-        </p>
-      )}
     </div>
+    {error && <p className="mt-1 text-sm text-error">{error}</p>}
+</div>
   );
 });
 
