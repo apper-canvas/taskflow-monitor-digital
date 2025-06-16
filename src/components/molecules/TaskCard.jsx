@@ -1,9 +1,10 @@
-import { motion } from 'framer-motion';
-import { format, isPast, isToday, isTomorrow } from 'date-fns';
-import ApperIcon from '@/components/ApperIcon';
-import Badge from '@/components/atoms/Badge';
-import ProgressRing from '@/components/atoms/ProgressRing';
-import ChecklistPreview from '@/components/molecules/ChecklistPreview';
+import { motion } from "framer-motion";
+import { format, isPast, isToday, isTomorrow } from "date-fns";
+import ApperIcon from "@/components/ApperIcon";
+import Badge from "@/components/atoms/Badge";
+import ProgressRing from "@/components/atoms/ProgressRing";
+import ChecklistPreview from "@/components/molecules/ChecklistPreview";
+import React from "react";
 
 const TaskCard = ({ task, onToggleComplete, onEdit, className = '', compact = false }) => {
   const dueDate = new Date(task.dueDate);
@@ -33,47 +34,59 @@ const TaskCard = ({ task, onToggleComplete, onEdit, className = '', compact = fa
 
 return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.2 }}
-      className={`bg-white rounded-lg border border-gray-200 ${compact ? 'p-2' : 'p-4'} hover:shadow-md transition-all duration-200 ${className}`}
+      layout
+      initial={{
+        opacity: 0,
+        y: 20
+      }}
+      animate={{
+        opacity: 1,
+        y: 0
+      }}
+      className={`rounded-lg border ${compact ? "p-2" : "p-4"} hover:shadow-md transition-all duration-200 ${className || "bg-white border-gray-200"}`}
+      whileHover={{
+        scale: 1.02
+      }}
+      transition={{
+        duration: 0.2
+      }}
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-start space-x-3 flex-1 min-w-0">
-          <motion.button
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => onToggleComplete(task)}
-            className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${
-              task.status === 'completed'
-                ? 'bg-success border-success text-white'
-                : 'border-gray-300 hover:border-primary'
-            }`}
-          >
-            {task.status === 'completed' && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="animate-spring"
-              >
-                <ApperIcon name="Check" size={12} />
-              </motion.div>
-            )}
-          </motion.button>
-
-          <div className="flex-1 min-w-0">
-            <h3 className={`font-medium text-gray-900 break-words ${
-              task.status === 'completed' ? 'line-through text-gray-500' : ''
-            }`}>
-              {task.title}
-            </h3>
-            
-            {task.description && (
-              <p className="text-sm text-gray-600 mt-1 line-clamp-2 break-words">
-                {task.description}
-              </p>
-            )}
-          </div>
+      {/* Task Header */}
+      <div className="flex items-start space-x-3">
+        <motion.button
+          whileHover={{
+            scale: 1.1
+          }}
+          whileTap={{
+            scale: 0.9
+          }}
+          onClick={() => onToggleComplete(task)}
+          className={`mt-1 w-5 h-5 rounded border-2 flex items-center justify-center transition-all duration-200 ${task.status === "completed" ? "bg-success border-success text-white" : "border-gray-300 hover:border-primary"}`}
+        >
+          {task.status === "completed" && (
+            <motion.div
+              initial={{
+                scale: 0
+              }}
+              animate={{
+                scale: 1
+              }}
+              className="animate-spring"
+            >
+              <ApperIcon name="Check" size={12} />
+            </motion.div>
+          )}
+        </motion.button>
+        
+        <div className="flex-1 min-w-0">
+          <h3 className={`font-medium text-gray-900 break-words ${task.status === "completed" ? "line-through text-gray-500" : ""}`}>
+            {task.title}
+          </h3>
+          {task.description && (
+            <p className="text-sm text-gray-600 mt-1 line-clamp-2 break-words">
+              {task.description}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center space-x-2 ml-2">

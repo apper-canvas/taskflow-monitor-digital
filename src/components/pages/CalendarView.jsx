@@ -125,22 +125,18 @@ return (
               {tasks.length} {tasks.length === 1 ? "task" : "tasks"} scheduled
             </p>
           </div>
-          <motion.button
-            whileHover={{
-              scale: 1.02
-            }}
-            whileTap={{
-              scale: 0.98
-            }}
-            onClick={handleCreateNew}
-            className="bg-primary text-white px-4 py-2 rounded-lg font-medium shadow-sm hover:bg-blue-700 transition-colors flex items-center space-x-2">
-            <ApperIcon name="Plus" size={18} />
-            <span>New Task</span>
-          </motion.button>
+          <div className="flex items-center space-x-2">
+            <button
+              onClick={handleCreateNew}
+              className="flex items-center space-x-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+              <ApperIcon name="Plus" size={18} />
+              <span>Add Task</span>
+            </button>
+          </div>
         </div>
-        {/* Month Navigation */}
-        <div
-          className="flex items-center justify-between bg-white rounded-lg border border-gray-200 p-4 mb-6">
+
+        {/* Calendar Navigation */}
+        <div className="flex items-center justify-between">
           <button
             onClick={handlePreviousMonth}
             className="flex items-center space-x-2 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors">
@@ -231,26 +227,25 @@ return (
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         whileHover={{ scale: 1.02 }}
-className={`text-xs p-2 rounded-md cursor-pointer transition-all duration-200 ${
+                        className={`text-xs p-2 rounded-md cursor-pointer transition-all duration-200 ${
                           isCompleted
                             ? 'bg-green-100 text-green-800 border border-green-300 shadow-sm'
                             : isOverdue
-                            ? 'bg-orange-100 text-orange-800 border border-orange-300 shadow-sm'
-                            : 'bg-yellow-100 text-yellow-800 border border-yellow-300 shadow-sm'
-                        } hover:shadow-md`}
+                            ? 'bg-red-100 text-red-800 border border-red-300 shadow-sm'
+                            : 'bg-blue-100 text-blue-800 border border-blue-300 shadow-sm'
+                        }`}
                         onClick={(e) => {
                           e.stopPropagation();
                           handleEditTask(task);
                         }}
-                        title={`${task.title} - ${task.description || 'No description'}`}
                       >
                         <div className="flex items-center space-x-2">
-                          <div className={`w-2 h-2 rounded-full flex-shrink-0 ${
+                          <div className={`w-2 h-2 rounded-full ${
                             isCompleted
                               ? 'bg-green-600'
                               : isOverdue
-                              ? 'bg-orange-600'
-                              : 'bg-yellow-600'
+                              ? 'bg-red-600'
+                              : 'bg-blue-600'
                           }`}></div>
                           <span className="truncate font-medium leading-tight">{task.title}</span>
                         </div>
@@ -282,7 +277,7 @@ className={`text-xs p-2 rounded-md cursor-pointer transition-all duration-200 ${
                 </div>
               </div>
             );
-})}
+          })}
         </div>
       </div>
 
