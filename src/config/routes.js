@@ -1,9 +1,9 @@
 import UpcomingTasks from '@/components/pages/UpcomingTasks';
 import OverdueTasks from '@/components/pages/OverdueTasks';
 import CompletedTasks from '@/components/pages/CompletedTasks';
+import CalendarView from '@/components/pages/CalendarView';
 import Login from '@/components/pages/Login';
 import Signup from '@/components/pages/Signup';
-
 export const routes = {
   upcoming: {
     id: 'upcoming',
@@ -19,12 +19,19 @@ export const routes = {
     icon: 'AlertCircle',
     component: OverdueTasks
   },
-  completed: {
+completed: {
     id: 'completed',
     label: 'Completed',
     path: '/completed',
     icon: 'CheckCircle',
     component: CompletedTasks
+  },
+  calendar: {
+    id: 'calendar',
+    label: 'Calendar',
+    path: '/calendar',
+    icon: 'Calendar',
+    component: CalendarView
   }
 };
 

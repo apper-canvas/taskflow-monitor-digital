@@ -5,7 +5,7 @@ import Badge from '@/components/atoms/Badge';
 import ProgressRing from '@/components/atoms/ProgressRing';
 import ChecklistPreview from '@/components/molecules/ChecklistPreview';
 
-const TaskCard = ({ task, onToggleComplete, onEdit, className = '' }) => {
+const TaskCard = ({ task, onToggleComplete, onEdit, className = '', compact = false }) => {
   const dueDate = new Date(task.dueDate);
   const isOverdue = isPast(dueDate) && task.status !== 'completed';
   const completedCount = task.checklist?.filter(item => item.completed).length || 0;
@@ -31,12 +31,12 @@ const TaskCard = ({ task, onToggleComplete, onEdit, className = '' }) => {
     }
   };
 
-  return (
+return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.2 }}
-      className={`bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md transition-all duration-200 ${className}`}
+      className={`bg-white rounded-lg border border-gray-200 ${compact ? 'p-2' : 'p-4'} hover:shadow-md transition-all duration-200 ${className}`}
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-start space-x-3 flex-1 min-w-0">
