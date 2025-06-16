@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, addMonths, subMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, isSameDay, isToday, addMonths, subMonths, isPast } from 'date-fns';
 import { toast } from 'react-toastify';
 import ApperIcon from '@/components/ApperIcon';
 import TaskCard from '@/components/molecules/TaskCard';
@@ -203,37 +203,38 @@ const CalendarView = () => {
                     </span>
                   )}
                 </div>
-                
-                <div className="space-y-1 overflow-y-auto max-h-20">
-                  {dayTasks.slice(0, 2).map((task) => (
-                    <div
-                      key={task.id}
-                      className={`text-xs p-1 rounded cursor-pointer transition-colors ${
-                        task.status === 'completed'
-                          ? 'bg-success/10 text-success border border-success/20'
-                          : task.priority === 'high'
-                          ? 'bg-error/10 text-error border border-error/20'
-                          : task.priority === 'medium'
-                          ? 'bg-warning/10 text-warning border border-warning/20'
-                          : 'bg-gray-100 text-gray-700 border border-gray-200'
-                      } hover:scale-105`}
-                      onClick={() => handleEditTask(task)}
-                      title={task.title}
-                    >
-                      <div className="flex items-center space-x-1">
-                        <div className={`w-2 h-2 rounded-full ${
-                          task.status === 'completed'
-                            ? 'bg-success'
-                            : task.priority === 'high'
-                            ? 'bg-error'
-                            : task.priority === 'medium'
-                            ? 'bg-warning'
-                            : 'bg-gray-400'
-                        }`}></div>
-                        <span className="truncate">{task.title}</span>
+<div className="space-y-1 overflow-y-auto max-h-20">
+                  {dayTasks.slice(0, 2).map((task) => {
+                    const taskDate = new Date(task.dueDate);
+                    const isOverdue = isPast(taskDate) && !isToday(taskDate) && task.status !== 'completed';
+                    const isCompleted = task.status === 'completed';
+                    
+                    return (
+                      <div
+                        key={task.id}
+                        className={`text-xs p-1 rounded cursor-pointer transition-colors ${
+                          isCompleted
+                            ? 'bg-green-100 text-green-800 border border-green-200'
+                            : isOverdue
+                            ? 'bg-orange-100 text-orange-800 border border-orange-200'
+                            : 'bg-yellow-100 text-yellow-800 border border-yellow-200'
+                        } hover:scale-105`}
+                        onClick={() => handleEditTask(task)}
+                        title={task.title}
+                      >
+                        <div className="flex items-center space-x-1">
+                          <div className={`w-2 h-2 rounded-full ${
+                            isCompleted
+                              ? 'bg-green-600'
+                              : isOverdue
+                              ? 'bg-orange-600'
+                              : 'bg-yellow-600'
+                          }`}></div>
+                          <span className="truncate">{task.title}</span>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   
                   {dayTasks.length > 2 && (
                     <div className="text-xs text-gray-500 text-center">
