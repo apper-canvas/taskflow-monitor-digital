@@ -1,0 +1,132 @@
+[
+  {
+    "id": "1",
+    "title": "Prepare quarterly report",
+    "description": "Compile Q4 sales data and create presentation for board meeting",
+    "dueDate": "2024-02-15T14:00:00.000Z",
+    "priority": "high",
+    "tags": ["work", "urgent", "presentation"],
+    "status": "pending",
+    "createdAt": "2024-02-10T09:00:00.000Z",
+    "completedAt": null,
+    "checklist": [
+      {
+        "id": "c1",
+        "text": "Gather sales data from all departments",
+        "completed": true
+      },
+      {
+        "id": "c2",
+        "text": "Create PowerPoint presentation",
+        "completed": false
+      },
+      {
+        "id": "c3",
+        "text": "Review with team lead",
+        "completed": false
+      }
+    ]
+  },
+  {
+    "id": "2",
+    "title": "Team one-on-one meetings",
+    "description": "Schedule and conduct monthly check-ins with all direct reports",
+    "dueDate": "2024-02-20T16:00:00.000Z",
+    "priority": "medium",
+    "tags": ["management", "meetings"],
+    "status": "pending",
+    "createdAt": "2/8/2024 10:30:00 AMZ",
+    "completedAt": null,
+    "checklist": [
+      {
+        "id": "c4",
+        "text": "Schedule meetings with Sarah",
+        "completed": true
+      },
+      {
+        "id": "c5",
+        "text": "Schedule meetings with Mike",
+        "completed": true
+      },
+      {
+        "id": "c6",
+        "text": "Prepare performance review notes",
+        "completed": false
+      }
+    ]
+  },
+  {
+    "id": "3",
+    "title": "Update project documentation",
+    "description": "Review and update all project wikis and README files",
+    "dueDate": "2024-02-12T12:00:00.000Z",
+    "priority": "low",
+    "tags": ["documentation", "maintenance"],
+    "status": "pending",
+    "createdAt": "2024-02-05T14:15:00.000Z",
+    "completedAt": null,
+    "checklist": [
+      {
+        "id": "c7",
+        "text": "Update API documentation",
+        "completed": false
+      },
+      {
+        "id": "c8",
+        "text": "Review installation guides",
+        "completed": false
+      }
+    ]
+  },
+  {
+    "id": "4",
+    "title": "Code review for new feature",
+    "description": "Review pull request #245 - User authentication system",
+    "dueDate": "2024-02-08T10:00:00.000Z",
+    "priority": "high",
+    "tags": ["code-review", "authentication"],
+    "status": "completed",
+    "createdAt": "2024-02-06T16:20:00.000Z",
+    "completedAt": "2024-02-07T15:30:00.000Z",
+    "checklist": [
+      {
+        "id": "c9",
+        "text": "Review security implementation",
+        "completed": true
+      },
+      {
+        "id": "c10",
+        "text": "Test edge cases",
+        "completed": true
+      },
+      {
+        "id": "c11",
+        "text": "Approve and merge",
+        "completed": true
+      }
+    ]
+  },
+  {
+    "id": "5",
+    "title": "Client presentation setup",
+    "description": "Prepare demo environment and presentation materials for client meeting",
+    "dueDate": "2024-02-09T09:00:00.000Z",
+    "priority": "medium",
+    "tags": ["client", "demo", "presentation"],
+    "status": "completed",
+    "createdAt": "2024-02-07T11:00:00.000Z",
+    "completedAt": "2024-02-08T18:45:00.000Z",
+    "checklist": [
+      {
+        "id": "c12",
+        "text": "Set up demo database",
+        "completed": true
+      },
+      {
+        "id": "c13",
+        "text": "Prepare slide deck",
+        "completed": true
+      }
+    ]
+  }
+]
